@@ -1,35 +1,58 @@
 import { useState } from "react";
 import { LandMedia } from "../Response";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { FaRegHeart } from "react-icons/fa6";
+import { TbShare3 } from "react-icons/tb";
+
+import "./card.css";
 
 interface IImageCarousel {
   media: LandMedia[];
 }
-const ImageCarousel = ({ media }: IImageCarousel) => { 
-  console.log(media)
-  const [imageUrl, setImageUrl] = useState<{ index: number; url: string }>({
-    index: 0,
-    url: media[0].image,
-  });
+const ImageCarousel = ({ media }: IImageCarousel) => {
+  const [imageIndex, setImageIndex] = useState<number>(0);
 
   const handleNext = () => {
-    setImageUrl((prev) => ({
-      index: prev.index + 1,
-      url: media[prev.index + 1]?.image,
-    }));
+    if (imageIndex === media.length - 1) {
+      setImageIndex(0);
+    } else {
+      setImageIndex((prev: number) => prev + 1);
+    }
   };
 
   const handleBack = () => {
-    setImageUrl((prev) => ({
-      index: prev.index - 1,
-      url: media[prev.index - 1]?.image,
-    }));
+    if (imageIndex === 0) {
+      setImageIndex(media.length - 1);
+    } else {
+      setImageIndex((prev: number) => prev - 1);
+    }
   };
 
   return (
-    <div>
-      <button onClick={handleBack}>Next</button>
-      <img src={imageUrl.url} />
-      <button onClick={handleNext}>Next</button>
+    <div className="relative w-full">
+      <div className="absolute right-1 p-2 top-2 bg-white opacity-70 rounded-full w-8 h-8">
+        <FaRegHeart/>
+      </div>
+      <div className="absolute p-2 right-10 top-2 bg-white opacity-70 rounded-full w-8 h-8">
+        <TbShare3/>
+      </div>
+      <img
+        className="w-full h-60 rounded-t-xl"
+        src={media[imageIndex]?.image || "../assests/dummy.png"}
+        alt={media[imageIndex]?.id.toString() || "noImage"}
+      />
+      <button
+        className="arrowButtons absolute top-28 px-2"
+        onClick={handleBack}
+      >
+        <IoIosArrowBack size={30} />
+      </button>
+      <button
+        className="arrowButtons absolute top-28 right-0 px-2"
+        onClick={handleNext}
+      >
+        <IoIosArrowForward size={30} />
+      </button>
     </div>
   );
 };

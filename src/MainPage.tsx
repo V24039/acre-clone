@@ -1,33 +1,24 @@
-import React, { useEffect, useState } from 'react'
-import Card from './Components/Card';
-import { LandDataResult, RecordResponse } from './Response';
+import Card from "./Components/Card";
+import useInfiniteScroll from "react-infinite-scroll-hook";
+import { TailSpin } from "react-loader-spinner";
+import useFetchLandDetails from "./useFetchLandDetails";
 
 const MainPage = () => {
-  const [landDetails, setLandDetails] = useState<Array<LandDataResult>>([]);
-  const [isLoading, setLoading] = useState<boolean>(false)
-  const [error, setErrors] = useState<string>("");
+  const {
+    landDetails,
+    currentPage,
+    hasNextPage,
+    isLoading,
+    error,
+    fetctLandDetails,
+  } = useFetchLandDetails(1);
 
-  const fetctLandDetails = async (pageNumber: number) => {
-    setLoading(true)
-    const data = await fetch(
-      `https://prod-be.1acre.in/lands/?ordering=-updated_at&page=${pageNumber}&page_size=10`,
-      {
-        method: "GET",
-      }
-    ).catch((err) => {
-      setErrors(err);
-    });
-
-    const jsonData: RecordResponse = data && (await data.json());
-
-    setLandDetails((prev) => [...prev, ...jsonData.results]);
-
-    setLoading(false)
-  };
-
-  useEffect(() => {
-    fetctLandDetails(1);
-  }, []);
+  const [sentryRef] = useInfiniteScroll({
+    loading: isLoading,
+    hasNextPage,
+    onLoadMore: () => fetctLandDetails(currentPage + 1),
+    disabled: !!error,
+  });
 
   if (error) {
     return <>{error}</>;
@@ -35,12 +26,28 @@ const MainPage = () => {
 
   return (
     <>
-      {isLoading && <div>Loading</div>}
-      {!isLoading && landDetails.length>0 && landDetails?.map((value) => (
-        <Card details={value} />
-      ))}
+      <div className="flex gap-0 flex-wrap max-md:gap-1">
+        {landDetails.length > 0 &&
+          landDetails?.map((value) => (
+            <div className="p-4 w-1/3 max-md:w-full" key={value.id}>
+              <Card details={value} />
+            </div>
+          ))}
+      </div>
+      {hasNextPage && (
+        <div className="flex justify-center" ref={sentryRef}>
+          <TailSpin
+            visible={true}
+            height="80"
+            width="80"
+            color="black"
+            ariaLabel="tail-spin-loading"
+            radius="1"
+          />
+        </div>
+      )}
     </>
   );
-}
+};
 
-export default MainPage
+export default MainPage;
